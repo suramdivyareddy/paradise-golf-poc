@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <title>Paradise Golf - Member Dashboard</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#004d40">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Paradise Golf">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/004d40/ffffff?text=PG">
+    
+    <!-- PWA Manifest (Embedded) -->
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJzaG9ydF9uYW1lIjogIlBhcmFkaXNlIEdvbGYiLAogICJuYW1lIjogIlBhcmFkaXNlIEdvbGYgRGFzaGJvYXJkIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9wbGFjZWhvbGQuY28vMTkyeDE5Mi8wMDRkNDAvZmZmZmZmP3RleHQ9UEciLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9wbGFjZWhvbGQuY28vNTEyeDUxMi8wMDRkNDAvZmZmZmZmP3RleHQ9UEciLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIKICAgIH0KICBdLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRkNDAiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmMGFmOGYiCn0=">
+
+    <!-- React and Babel for JSX compilation in browser -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Google Font: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f0f4f8; 
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #004d40; /* Dark teal */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #004d40;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        //  PWA SERVICE WORKER REGISTRATION 
+        if ('serviceWorker' in navigator) {
+            const serviceWorkerCode = `
+                const CACHE_NAME = 'paradise-golf-cache-v1';
+                // Add the current page and all CDN scripts to the cache
+                const urlsToCache = [
+                    location.href, // Cache the main HTML file itself
+                    'https://unpkg.com/react@18/umd/react.development.js',
+                    'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
+                    'https://unpkg.com/@babel/standalone/babel.min.js',
+                    'https://cdn.tailwindcss.com',
+                    'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap'
+                ];
+
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => {
+                                console.log('Opened cache');
+                                // Use no-cors for cross-origin requests like Google Fonts
+                                const requests = urlsToCache.map(url => new Request(url, { mode: 'no-cors' }));
+                                return cache.addAll(requests);
+                            })
+                    );
+                });
+
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => {
+                                // Cache hit - return response
+                                if (response) {
+                                    return response;
+                                }
+                                // Not in cache - fetch from network
+                                return fetch(event.request);
+                            })
+                    );
+                });
+            `;
+            
+            const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+
+            navigator.serviceWorker.register(swUrl)
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(error => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        }
+
+        //  ICON COMPONENTS (Self-contained SVGs) 
+        const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>;
+        const GolfIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 18.5A6.5 6.5 0 0 1 5.5 12h0a6.5 6.5 0 0 1 13 0h0a6.5 6.5 0 0 1-6.5 6.5Z"/><path d="M12 12v-6"/><path d="m12 18.5 4-4"/><path d="M12 8h7S17 4 12 4s-5 4-5 4h7Z"/></svg>;
+        const DashboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
+        const CalendarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>;
+        const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+        const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
+        const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+        const PriceIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
+        const PlayersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+        const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>;
+        
+        // =========== MOCK DATA ===========
+        const mockTournaments = [
+            { name: "Summer Scramble '25", course: "Falconhead Golf Club", date: "Aug 25, 2025", spots: 3 },
+            { name: "Member-Guest Invitational", course: "Seminole Lake CC", date: "Sep 15, 2025", spots: 11 },
+            { name: "Fall Classic", course: "Rocky Point", date: "Oct 20, 2025", spots: "Full" },
+        ];
+
+        const mockBookings = [
+            { course: "Eagles - Forest", date: "Aug 10, 2025", time: "8:30 AM", players: 2 },
+            { course: "Rocky Point", date: "Aug 17, 2025", time: "10:00 AM", players: 4 },
+        ];
+        
+        const mockSearchResults = [
+            { course: "Rocky Point", players: "1-4", dailyRate: 75, memberRate: 45, times: ["7:15 AM", "7:30 AM", "8:00 AM", "10:30 AM"] },
+            { course: "Eagles - Forest", players: "1-4", dailyRate: 82, memberRate: 50, times: ["7:45 AM", "8:15 AM", "9:45 AM", "11:00 AM"] },
+            { course: "Silver Dollar", players: "1-2", dailyRate: 60, memberRate: 35, times: ["9:00 AM", "9:15 AM"] },
+            { course: "Seminole Lake CC", players: "1-4", dailyRate: 95, memberRate: 65, times: ["8:30 AM", "10:15 AM", "12:00 PM"] },
+        ];
+
+        // =========== REACT COMPONENTS ===========
+
+        function Sidebar() {
+            const menuItems = [
+                { icon: <DashboardIcon />, name: 'Dashboard' },
+                { icon: <GolfIcon />, name: 'Book Tee Time' },
+                { icon: <CalendarIcon />, name: 'My Bookings' },
+                { icon: <UserIcon />, name: 'Profile' },
+            ];
+
+            return (
+                <div className="bg-white w-64 p-6 flex-shrink-0 flex flex-col h-full">
+                    <div className="flex items-center gap-3 mb-10">
+                        <div className="bg-teal-800 p-2 rounded-lg text-white">
+                           <GolfIcon />
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-800">Paradise Golf</h1>
+                    </div>
+                    <nav className="flex-grow">
+                        <ul>
+                            {menuItems.map((item, index) => (
+                                <li key={index} className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-colors ${index === 0 ? 'bg-teal-50 text-teal-800 font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}>
+                                    {item.icon}
+                                    <span>{item.name}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                    <div>
+                        <div className="flex items-center gap-4 p-3 rounded-lg cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors">
+                            <LogoutIcon />
+                            <span>Logout</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function TeeTimeFinder() {
+            const [location, setLocation] = React.useState('');
+            const [selectedCourses, setSelectedCourses] = React.useState([]);
+            const [price, setPrice] = React.useState(100);
+            const [players, setPlayers] = React.useState(2);
+            const [timeRange, setTimeRange] = React.useState({ start: 6, end: 18 }); // 6am to 6pm
+            const [isSearching, setIsSearching] = React.useState(false);
+            const [searchResults, setSearchResults] = React.useState(null);
+
+            const tampaCourses = ["Rocky Point", "Eagles - Forest", "Silver Dollar", "Seminole Lake CC"];
+
+            const handleCourseToggle = (course) => {
+                setSelectedCourses(prev => 
+                    prev.includes(course) ? prev.filter(c => c !== course) : [...prev, course]
+                );
+            };
+            
+            const handleSearch = () => {
+                setIsSearching(true);
+                setSearchResults(null);
+                // Simulate API call
+                setTimeout(() => {
+                    setIsSearching(false);
+                    setSearchResults(mockSearchResults);
+                }, 1500);
+            };
+
+            const formatTime = (hour) => {
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const h = hour % 12 || 12;
+                return `${h}:00 ${ampm}`;
+            };
+
+            return (
+                <div className="bg-white p-6 rounded-2xl shadow-sm col-span-1 lg:col-span-2">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Find Your Next Tee Time</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Location */}
+                        <div className="col-span-1">
+                            <label className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-2"><LocationIcon /> Location</label>
+                            <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                <option value="">Select a region</option>
+                                <option value="gainesville">Gainesville/Ocala</option>
+                                <option value="orlando">Orlando</option>
+                                <option value="tampa">Tampa Bay</option>
+                                <option value="sarasota">Sarasota</option>
+                            </select>
+                        </div>
+                        
+                        {/* Date Range */}
+                        <div className="col-span-1">
+                             <label className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-2"><CalendarIcon /> Date Range</label>
+                             <div className="flex gap-2">
+                                <input type="date" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"/>
+                                <input type="date" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"/>
+                             </div>
+                        </div>
+                    </div>
+
+                    {/* Conditional Tampa Courses */}
+                    {location === 'tampa' && (
+                        <div className="mt-6">
+                            <label className="text-sm font-medium text-gray-600 mb-2 block">Course(s) in Tampa Bay</label>
+                            <div className="flex flex-wrap gap-2">
+                                {tampaCourses.map(course => (
+                                    <button key={course} onClick={() => handleCourseToggle(course)} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCourses.includes(course) ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                                        {course}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Additional Filters */}
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Additional Filters</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-2"><PriceIcon /> Max Price/Player: <span className="font-bold text-teal-700">${price}</span></label>
+                                <input type="range" min="20" max="200" value={price} onChange={e => setPrice(e.target.value)} />
+                            </div>
+                             <div>
+                                <label className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-2"><PlayersIcon /> No. of Players</label>
+                                <select value={players} onChange={e => setPlayers(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                            <div className="md:col-span-2 lg:col-span-1">
+                                <label className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-2"><ClockIcon /> Tee Time</label>
+                                <p className="text-xs text-center font-semibold text-teal-700">{formatTime(timeRange.start)} - {formatTime(timeRange.end)}</p>
+                                <input type="range" min="5" max="19" defaultValue="6" onChange={(e) => setTimeRange(prev => ({...prev, start: e.target.value}))} className="mt-2"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 flex justify-end">
+                        <button onClick={handleSearch} disabled={isSearching} className="flex items-center justify-center gap-3 bg-teal-700 text-white font-bold py-4 px-8 rounded-lg hover:bg-teal-800 transition-all w-full md:w-auto disabled:bg-teal-400">
+                            {isSearching ? 'Searching...' : 'Search Availability'}
+                            <SearchIcon />
+                        </button>
+                    </div>
+
+                    {isSearching && <div className="text-center p-8">Loading results...</div>}
+                    {searchResults && <SearchResults results={searchResults} />}
+                </div>
+            );
+        }
+        
+        function SearchResults({ results }) {
+            const [selectedDate, setSelectedDate] = React.useState(0);
+            const dates = Array.from({length: 5}, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                return { day: d.toLocaleDateString('en-US', { weekday: 'short'}), date: d.getDate() };
+            });
+
+            return (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Available Tee Times</h3>
+                    {/* "Flight-style" date selector */}
+                    <div className="flex justify-between items-center mb-4">
+                        {dates.map((d, index) => (
+                            <div key={index} onClick={() => setSelectedDate(index)} className={`text-center p-3 rounded-lg cursor-pointer flex-grow ${selectedDate === index ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}>
+                                <p className="font-bold text-lg">{d.date}</p>
+                                <p className="text-xs">{d.day.toUpperCase()}</p>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Results Table */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
+                                <tr>
+                                    <th className="p-3">Course Name</th>
+                                    <th className="p-3">Players</th>
+                                    <th className="p-3 text-right">Daily Rate</th>
+                                    <th className="p-3 text-right">Member Rate</th>
+                                    <th className="p-3">Available Times</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {results.map((res, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        <td className="p-3 font-semibold text-gray-800">{res.course}</td>
+                                        <td className="p-3 text-gray-600">{res.players}</td>
+                                        <td className="p-3 text-gray-600 text-right">${res.dailyRate}</td>
+                                        <td className="p-3 font-bold text-teal-600 text-right">${res.memberRate}</td>
+                                        <td className="p-3">
+                                            <div className="flex flex-wrap gap-2">
+                                                {res.times.map(time => (
+                                                    <button key={time} className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full hover:bg-teal-100">
+                                                        {time}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )
+        }
+
+        function UpcomingBookings() {
+            return (
+                <div className="bg-white p-6 rounded-2xl shadow-sm">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Upcoming Bookings</h3>
+                    <ul className="space-y-4">
+                        {mockBookings.map((booking, index) => (
+                            <li key={index} className="flex items-center gap-4 p-4 bg-teal-50/50 rounded-lg">
+                                <div className="bg-teal-600 text-white rounded-lg p-3 flex flex-col items-center justify-center h-16 w-16">
+                                    <span className="text-xs">{booking.date.split(',')[0].slice(0,3).toUpperCase()}</span>
+                                    <span className="font-bold text-2xl">{booking.date.split(' ')[1].replace(',','')}</span>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-gray-800">{booking.course}</p>
+                                    <p className="text-sm text-gray-500">{booking.time} for {booking.players} players</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+
+        function MemberStats() {
+            return (
+                <div className="bg-teal-800 text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                    <div>
+                        <p className="text-sm text-teal-200">Membership Status</p>
+                        <p className="text-2xl font-bold">Gold Member</p>
+                    </div>
+                    <div className="mt-6 grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <p className="text-3xl font-bold">12</p>
+                            <p className="text-xs text-teal-200">Rounds This Year</p>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold">$420</p>
+                            <p className="text-xs text-teal-200">Savings YTD</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        function Tournaments() {
+            return (
+                <div className="bg-white p-6 rounded-2xl shadow-sm">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Exclusive Tournaments</h3>
+                    <ul className="space-y-3">
+                        {mockTournaments.map((tour, index) => (
+                            <li key={index} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="font-semibold text-gray-700">{tour.name}</p>
+                                    <p className="text-sm text-gray-500">{tour.course} - {tour.date}</p>
+                                </div>
+                                <button className={`text-sm font-semibold py-1 px-3 rounded-full ${tour.spots === 'Full' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                    {tour.spots === 'Full' ? 'Full' : `${tour.spots} Spots Left`}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )
+        }
+
+        function App() {
+            const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+
+            return (
+                <div className="relative min-h-screen flex bg-gray-100">
+                    {/* Sidebar */}
+                    <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 lg:flex-shrink-0 transition-transform duration-300 ease-in-out z-30 ${!isSidebarOpen ? 'lg:-ml-64' : ''}`}>
+                        <Sidebar />
+                    </div>
+                    
+                    {/* Overlay for mobile when sidebar is open */}
+                    {isSidebarOpen && <div onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black opacity-50 z-20 lg:hidden"></div>}
+
+                    {/* Main content */}
+                    <div className="flex-1">
+                         <main className="p-6 lg:p-8">
+                            {/* Header */}
+                            <div className="flex items-center mb-8">
+                                 <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-500 hover:text-gray-700 mr-4">
+                                    <MenuIcon />
+                                </button>
+                                <h1 className="text-3xl font-bold">Welcome Back!</h1>
+                            </div>
+
+                            {/* Main Dashboard Grid */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Left side (Tee Time Finder) */}
+                                <div className="lg:col-span-2 space-y-6">
+                                    <TeeTimeFinder />
+                                </div>
+
+                                {/* Right side (Other widgets) */}
+                                <div className="lg:col-span-1 space-y-6">
+                                    <MemberStats />
+                                    <UpcomingBookings />
+                                    <Tournaments />
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
